@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Shopping List API is running' });
+  res.json({ message: 'api is running' });
 });
 
 app.use('/api/auth', authRoutes);
@@ -30,5 +30,5 @@ app.use(errorHandler);
 
 const PORT = 8000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
