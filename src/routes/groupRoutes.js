@@ -20,6 +20,8 @@ router.use(protect);
 // GET /api/groups - Get my groups
 router.get('/', getMyGroups);
 
+
+// get all groups
 router.get('/all-groups', getAllGroups);
 
 // POST /api/groups - Create group
