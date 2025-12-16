@@ -1,11 +1,11 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { connectDB } from './config/db.js';
-import { errorHandler, notFound } from './middleware/errorHandler.js';
-import authRoutes from './routes/authRoutes.js';
-import userRoutes from './routes/userRoutes.js';
-import groupRoutes from './routes/groupRoutes.js';
+import { connectDB } from './src/config/db.js';
+import { errorHandler, notFound } from './src/middleware/errorHandler.js';
+import authRoutes from './src/routes/authRoutes.js';
+import userRoutes from './src/routes/userRoutes.js';
+import groupRoutes from './src/routes/groupRoutes.js';
 
 // Load environment variables
 dotenv.config();
