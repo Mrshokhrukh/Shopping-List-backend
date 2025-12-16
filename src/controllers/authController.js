@@ -1,9 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-/**
- * Generate JWT token
- */
 const generateToken = (id) => {
   return jwt.sign(
     { id },
@@ -18,28 +15,24 @@ export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Validate input
     if (!username || !password) {
       return res
         .status(400)
         .json({ message: 'Please provide username and password' });
     }
 
-    // Find user by username
     const user = await User.findOne({ username: username.toLowerCase() });
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
     const isPasswordValid = await user.matchPassword(password);
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Return user data with token
     res.json({
       _id: user._id,
       name: user.name,
@@ -52,11 +45,6 @@ export const login = async (req, res) => {
   }
 };
 
-/**
- * @desc    Get current user
- * @route   GET /api/auth
- * @access  Private
- */
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');

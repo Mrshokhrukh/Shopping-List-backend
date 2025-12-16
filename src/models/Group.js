@@ -29,7 +29,6 @@ const groupSchema = new mongoose.Schema(
   },
 )
 
-// Hash password before saving
 groupSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     next()
@@ -38,7 +37,7 @@ groupSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, salt)
 })
 
-// Compare password method
+
 groupSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password)
 }

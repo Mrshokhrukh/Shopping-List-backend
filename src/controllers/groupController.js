@@ -1,14 +1,8 @@
 import Group from '../models/Group.js';
 import User from '../models/User.js';
 
-/**
- * @desc    Get all groups for current user
- * @route   GET /api/groups
- * @access  Private
- */
 export const getMyGroups = async (req, res) => {
   try {
-    // Find groups where user is owner or member
     const groups = await Group.find({
       $or: [{ owner: req.user._id }, { members: req.user._id }],
     })
@@ -32,23 +26,16 @@ export const getAllGroups = async (req, res) => {
   }
 };
 
-/**
- * @desc    Create new group
- * @route   POST /api/groups
- * @access  Private
- */
 export const createGroup = async (req, res) => {
   try {
     const { name, password } = req.body;
 
-    // Validate input
     if (!name || !password) {
       return res
         .status(400)
         .json({ message: 'Please provide group name and password' });
     }
 
-    // Create group with owner as the first member
     const group = await Group.create({
       name,
       password,
@@ -56,7 +43,6 @@ export const createGroup = async (req, res) => {
       members: [req.user._id],
     });
 
-    // Populate owner and members
     await group.populate('owner', 'name username');
     await group.populate('members', 'name username');
 
@@ -67,11 +53,6 @@ export const createGroup = async (req, res) => {
   }
 };
 
-/**
- * @desc    Delete group
- * @route   DELETE /api/groups/:groupId
- * @access  Private
- */
 export const deleteGroup = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -82,7 +63,6 @@ export const deleteGroup = async (req, res) => {
       return res.status(404).json({ message: 'Group not found' });
     }
 
-    // Check if user is the owner
     if (group.owner.toString() !== req.user._id.toString()) {
       return res
         .status(403)
@@ -98,11 +78,6 @@ export const deleteGroup = async (req, res) => {
   }
 };
 
-/**
- * @desc    Add member to group
- * @route   POST /api/groups/:groupId/members
- * @access  Private
- */
 export const addMember = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -118,27 +93,22 @@ export const addMember = async (req, res) => {
       return res.status(404).json({ message: 'Group not found' });
     }
 
-    // Check if user is the owner
     if (group.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to add members' });
     }
 
-    // Check if member exists
     const memberExists = await User.findById(memberId);
     if (!memberExists) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if already a member
     if (group.members.includes(memberId)) {
       return res.status(400).json({ message: 'User is already a member' });
     }
 
-    // Add member
     group.members.push(memberId);
     await group.save();
 
-    // Populate and return updated group
     await group.populate('owner', 'name username');
     await group.populate('members', 'name username');
 
@@ -149,11 +119,6 @@ export const addMember = async (req, res) => {
   }
 };
 
-/**
- * @desc    Remove member from group
- * @route   DELETE /api/groups/:groupId/members/:memberId
- * @access  Private
- */
 export const removeMember = async (req, res) => {
   try {
     const { groupId, memberId } = req.params;
@@ -164,25 +129,21 @@ export const removeMember = async (req, res) => {
       return res.status(404).json({ message: 'Group not found' });
     }
 
-    // Check if user is the owner
     if (group.owner.toString() !== req.user._id.toString()) {
       return res
         .status(403)
         .json({ message: 'Not authorized to remove members' });
     }
 
-    // Check if trying to remove owner
     if (memberId === group.owner.toString()) {
       return res.status(400).json({ message: 'Cannot remove the group owner' });
     }
 
-    // Remove member
     group.members = group.members.filter(
       (member) => member.toString() !== memberId
     );
     await group.save();
 
-    // Populate and return updated group
     await group.populate('owner', 'name username');
     await group.populate('members', 'name username');
 
@@ -193,11 +154,6 @@ export const removeMember = async (req, res) => {
   }
 };
 
-/**
- * @desc    Join group with password
- * @route   POST /api/groups/join
- * @access  Private
- */
 export const joinGroup = async (req, res) => {
   try {
     const { password } = req.body;
@@ -206,7 +162,6 @@ export const joinGroup = async (req, res) => {
       return res.status(400).json({ message: 'Please provide group password' });
     }
 
-    // Find all groups and check password
     const groups = await Group.find();
     let matchedGroup = null;
 
@@ -222,18 +177,15 @@ export const joinGroup = async (req, res) => {
       return res.status(404).json({ message: 'Invalid group password' });
     }
 
-    // Check if already a member
     if (matchedGroup.members.includes(req.user._id)) {
       return res
         .status(400)
         .json({ message: 'You are already a member of this group' });
     }
 
-    // Add user to group
     matchedGroup.members.push(req.user._id);
     await matchedGroup.save();
 
-    // Populate and return group
     await matchedGroup.populate('owner', 'name username');
     await matchedGroup.populate('members', 'name username');
 
@@ -244,11 +196,6 @@ export const joinGroup = async (req, res) => {
   }
 };
 
-/**
- * @desc    Leave group
- * @route   POST /api/groups/leave
- * @access  Private
- */
 export const leaveGroup = async (req, res) => {
   try {
     const { groupId } = req.body;
@@ -263,14 +210,12 @@ export const leaveGroup = async (req, res) => {
       return res.status(404).json({ message: 'Group not found' });
     }
 
-    // Check if user is the owner
     if (group.owner.toString() === req.user._id.toString()) {
       return res
         .status(400)
         .json({ message: 'Owner cannot leave the group. Delete it instead.' });
     }
 
-    // Remove user from members
     group.members = group.members.filter(
       (member) => member.toString() !== req.user._id.toString()
     );
@@ -283,11 +228,6 @@ export const leaveGroup = async (req, res) => {
   }
 };
 
-/**
- * @desc    Search groups by name
- * @route   GET /api/groups/search?q=query
- * @access  Private
- */
 export const searchGroups = async (req, res) => {
   try {
     const { q } = req.query;
@@ -296,7 +236,6 @@ export const searchGroups = async (req, res) => {
       return res.json([]);
     }
 
-    // Search groups where user is owner or member
     const groups = await Group.find({
       $and: [
         { name: { $regex: q, $options: 'i' } },

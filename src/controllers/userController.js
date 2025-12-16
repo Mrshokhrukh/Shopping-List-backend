@@ -2,9 +2,6 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Group from '../models/Group.js';
 
-/**
- * Generate JWT token
- */
 const generateToken = (id) => {
   return jwt.sign(
     { id },
@@ -15,11 +12,6 @@ const generateToken = (id) => {
   );
 };
 
-/**
- * @desc    Register new user
- * @route   POST /api/users
- * @access  Public
- */
 export const registerUser = async (req, res) => {
   try {
     const { name, username, password } = req.body;
@@ -37,14 +29,12 @@ export const registerUser = async (req, res) => {
         .json({ message: 'Password must be at least 6 characters' });
     }
 
-    // Check if user already exists
     const userExists = await User.findOne({ username: username.toLowerCase() });
 
     if (userExists) {
       return res.status(400).json({ message: 'Username already exists' });
     }
 
-    // Create user
     const user = await User.create({
       name,
       username: username.toLowerCase(),
@@ -67,11 +57,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-/**
- * @desc    Delete user
- * @route   DELETE /api/users
- * @access  Private
- */
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -80,16 +65,13 @@ export const deleteUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Delete all groups owned by this user
     await Group.deleteMany({ owner: req.user._id });
 
-    // Remove user from all groups they're a member of
     await Group.updateMany(
       { members: req.user._id },
       { $pull: { members: req.user._id } }
     );
 
-    // Delete the user
     await User.findByIdAndDelete(req.user._id);
 
     res.json({ message: 'User deleted successfully' });
@@ -99,11 +81,6 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-/**
- * @desc    Search users by name or username
- * @route   GET /api/users/search?q=query
- * @access  Public
- */
 export const searchUsers = async (req, res) => {
   try {
     const { q } = req.query;
