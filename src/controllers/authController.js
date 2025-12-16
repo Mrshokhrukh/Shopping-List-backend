@@ -1,41 +1,42 @@
-import jwt from "jsonwebtoken"
-import User from "../models/User.js"
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
 /**
  * Generate JWT token
  */
 const generateToken = (id) => {
-  return jwt.sign({ id }, '8fd22c05d4ec1e8d10fa31e8ff1bdb6eb4adc546c855e974501fc2df69976cd7', {
-    expiresIn: "30d",
-  })
-}
+  return jwt.sign(
+    { id },
+    '8fd22c05d4ec1e8d10fa31e8ff1bdb6eb4adc546c855e974501fc2df69976cd7',
+    {
+      expiresIn: '30d',
+    }
+  );
+};
 
-/**
- * @desc    Login user
- * @route   POST /api/auth
- * @access  Public
- */
 export const login = async (req, res) => {
   try {
-    const { username, password } = req.body
+    const { username, password } = req.body;
 
     // Validate input
     if (!username || !password) {
-      return res.status(400).json({ message: "Please provide username and password" })
+      return res
+        .status(400)
+        .json({ message: 'Please provide username and password' });
     }
 
     // Find user by username
-    const user = await User.findOne({ username: username.toLowerCase() })
+    const user = await User.findOne({ username: username.toLowerCase() });
 
     if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" })
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     // Check password
-    const isPasswordValid = await user.matchPassword(password)
+    const isPasswordValid = await user.matchPassword(password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid credentials" })
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     // Return user data with token
@@ -44,12 +45,12 @@ export const login = async (req, res) => {
       name: user.name,
       username: user.username,
       token: generateToken(user._id),
-    })
+    });
   } catch (error) {
-    console.error("Login error:", error)
-    res.status(500).json({ message: "Server error during login" })
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error during login' });
   }
-}
+};
 
 /**
  * @desc    Get current user
@@ -58,19 +59,19 @@ export const login = async (req, res) => {
  */
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select("-password")
+    const user = await User.findById(req.user._id).select('-password');
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" })
+      return res.status(404).json({ message: 'User not found' });
     }
 
     res.json({
       _id: user._id,
       name: user.name,
       username: user.username,
-    })
+    });
   } catch (error) {
-    console.error("Get me error:", error)
-    res.status(500).json({ message: "Server error" })
+    console.error('Get me error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
-}
+};
